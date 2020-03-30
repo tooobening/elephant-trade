@@ -1,184 +1,274 @@
-//Step0-- execute script when window is loaded
-window.onload = function(){
-    //Step1-- SVG dimension variables
-    var w = 1000, h = 500;
-    var container = d3.select("body") //get the <body> element from the DOM
-        .append("svg") //put a new svg in the body
-        .attr("width", w) //assign the width
-        .attr("height", h) //assign the height
-        .attr("class", "container") //always assign a class (as the block name) for styling and future selection
-        .style("background-color", "rgba(102,92,65,0.7)"); //same way we would use jQuery's .css() method; only put a semicolon at the end of the block!
+/* Map of GeoJSON data from AmtrackStations.geojson */
+//declare map var in global scope
+var mymap;
+var minValue;
+var dataStats = {};
 
-    //Step2-- Create a completely new selection ("InnerRect" block) so that u can append other elements to the container
-    var innerRect = container.append("rect") //put a new rect in the svg
-    .datum(400)
-    .attr("width", function(d){ //rectangle width
-        return d * 2 +120; 
-    }) 
-    .attr("height", function(d){ //rectangle height
-        return d; //400
-    })
-    .attr("class", "innerRect") //class name
-    .attr("x", 50) //position from left on the x (horizontal) axis
-    .attr("y", 50) //position from top on the y (vertical) axis
-    .style("fill", "#ffe291"); //fill color
-    
-    var cityPop = [
-        { 
-            city: 'Madison',
-            population: 233209
-        },
-        {
-            city: 'Milwaukee',
-            population: 594833
-        },
-        {
-            city: 'Green Bay',
-            population: 104057
-        },
-        {
-            city: 'Superior',
-            population: 27244
+//-------------OOP---------------//
+function PopupContent(properties, attribute){
+    this.properties = properties;
+    this.attribute = attribute;
+    this.year = attribute.split("_")[1];
+    this.population = this.properties[attribute];
+    this.formatted = "<p><b>Station Name:</b> " + this.properties.STNNAME + "</p><p><b>Passengers in " + this.year + ":</b> " + this.population + " thousand</p>";
+};
+//-------------/OOP---------------//
+//-------------Process data, Return attrubutes arrays-----------------------//
+function processData(data){
+    //empty array to hold attributes
+    var attributes = [];
+
+    //properties of the first feature in the dataset
+    var properties = data.features[0].properties;
+
+    //push each attribute name into attributes array
+    for (var attribute in properties){
+        //only take attributes with population values
+        if (attribute.substr(0,4) === "PASS"){
+            attributes.push(attribute)
         }
-    ];
-    //Step3-- Scale: Create and apply D3 scale generators for colored, proportionally-sized and -positioned circles in our bubble chart!
-    var x = d3.scaleLinear() //create the scale
-        .range([90, 810]) //output min and max
-        .domain([0, 3]); //input min and max
+    };
+    return attributes;
+};
+//-------------/Process data, Return attrubutes arrays-----------------------//
 
-    //find the minimum value of the array
-    var minPop = d3.min(cityPop, function(d){
-        return d.population;
-    });
+//step 1 create map
+function createMap(){
 
-    //find the maximum value of the array
-    var maxPop = d3.max(cityPop, function(d){
-        return d.population;
-    });
+    //add OSM base tilelayer
+    mymap = L.map('mapid').setView([40,-100],4)
 
-    //scale for circles center y coordinate
-    var y = d3.scaleLinear()
-        .range([450, 50]) //Reference 'rect' size
-        .domain([0, 700000]);
-   //color scale generator 
-   var color = d3.scaleLinear()
-   .range([
-       "#3921A9",
-       "#0E082A"//https://htmlcolorcodes.com/color-picker/
-   ]) //"Unclassed" color scheme: each color derived from interpolation between the two range colors
-   .domain([
-       minPop, 
-       maxPop
-   ]);
-   //Step4 -- Joining Data and make a Bubble chart
-    var circles = container.selectAll(".circles") //but wait--there are no circles yet!
-        .data(cityPop) //here we feed in an array
-        .enter()//After .data(); No parameters needed; Create an array of placeholders for one markup element per data value in the array
-        .append("circle") //add a circle for each datum
-        .attr("class", "circles") //apply a class name to all circles
-        .attr("id", function(d){
-            return d.city;
-        })
-        .attr("r", function(d){
-            //calculate the radius based on population value as circle area
-            var area = d.population * 0.01;
-            return Math.sqrt(area/Math.PI);
-        })
-        .attr("cx", function(d, i){
-            //use the scale generator with the index to place each circle horizontally
-            return x(i);
-        })
-        .attr("cy", function(d){
-            return y(d.population);
-        })
-        .style("fill", function(d, i){ //add a fill based on the color scale generator
-            return color(d.population);
-        })
-    
-    //Step5-- Axes: Create y axis generator (meaningful)
-    var yAxis = d3.axisLeft(y);//The argument is the scale generator
+    L.tileLayer('https://api.mapbox.com/styles/v1/{id}/tiles/{z}/{x}/{y}?access_token={accessToken}', {
+        attribution: 'Map data &copy; <a href="https://www.openstreetmap.org/">OpenStreetMap</a> contributors, <a href="https://creativecommons.org/licenses/by-sa/2.0/">CC-BY-SA</a>, Imagery © <a href="https://www.mapbox.com/">Mapbox</a>',
+        maxZoom: 18,
+        id: 'mapbox/dark-v10', //https://docs.mapbox.com/api/maps/#mapbox-styles
+        tileSize: 512,
+        zoomOffset: -1,
+        accessToken: 'pk.eyJ1IjoieXVuaW5nbGl1IiwiYSI6ImNrNm9tNDFhcDBpejgzZG1sdnJuaTZ4MzYifQ.qYhM3_wrbL6lyTTccNKx_g' //'your.mapbox.access.token'
+    }).addTo(mymap);
 
-    //create axis g element and add axis
-    var axis = container.append("g")
-        .attr("class", "axis")
-        .attr("transform", "translate(50, 0)") //x corrdinate is +50 for moving right; +y for moving down
-        .call(yAxis); // ???How to replace with "yAxis(axis)";
-
-
-    //Step6-- Text: Create a text element and add the title
-    var title = container.append("text")
-        .attr("class", "title")
-        .attr("text-anchor", "middle")
-        .attr("x", 500) //Position the text anchor within the 'SVG'container
-        .attr("y", 30) //Position the text anchor within the 'SVG' container
-        .text("City Populations");
-    var labels = container.selectAll(".labels")
-        .data(cityPop)
-        .enter() //after .data()! 
-        .append("text")
-        .attr("class", "labels")
-        .attr("text-anchor", "left")
-        // .attr("x", function(d,i){
-        //     //horizontal position to the right of each circle
-        //     return x(i) + Math.sqrt(d.population * 0.01 / Math.PI) + 5;
-        // })
-        .attr("y", function(d){
-            //vertical position centered on each circle
-            return y(d.population) -5;
-        })
-        //Use .text() here if labels are somple, just 1 line
-        // .text(function(d){
-        //     return d.city + ", Pop. " + d.population;
-        // }); 
-        
-        //Tspan: wrap these labels onto several lines
-        var nameLine = labels.append("tspan")
-            .attr("class", "nameLine")
-            .attr("x", function(d,i){
-                //horizontal position to the right of each circle
-                return x(i) + Math.sqrt(d.population * 0.01 / Math.PI) + 5;
-            })
-            .text(function(d){
-                return d.city;
-            });
-
-        //create format generator
-        var format = d3.format(",");
-        //second line of label
-        var popLine = labels.append("tspan")
-            .attr("class", "popLine")
-            .attr("x", function(d,i){
-                //horizontal position to the right of each circle
-                return x(i) + Math.sqrt(d.population * 0.01 / Math.PI) + 5;
-            })
-            .attr("dy", "15") //vertical offset
-            .text(function(d){
-                return "Population: " + format(d.population); //use format generator to format numbers
-            });
-    
+    //call getData function
+    getData(mymap);
 };
 
-/*other array data
-var numbersArray = [1, 2, 3];
-var stringsArray = ["one", "two", "three"];
-var colorsArray = ["#FF4949", "#A4FF49", "#49FFFF"];
-var objectsArray = [
-    { 
-        city: 'Madison',
-        population: 233209
-    },
-    {
-        city: 'Milwaukee',
-        population: 594833
-    },
-    {
-        city: 'Green Bay',
-        population: 104057
+//Step 2: Import GeoJSON data
+function getData(mymap){
+    //load the data
+    $.ajax("data/AmtrakStations.geojson", {
+        dataType: "json",
+        success: function(response){
+            //create an attributes array
+            var attributes = processData(response);
+            calcStats(response);
+            minValue = dataStats.min
+            createPropSymbols(response, attributes);
+            createControls(attributes); // Important: ADD PARAMETER in parantheses!
+            // createLegend(mymap,attributes);
+        }
+    });
+};
+
+//Step 3: Add circle markers for point features to the map
+function createPropSymbols(data, attributes){
+    //create a Leaflet GeoJSON layer and add it to the map
+    L.geoJson(data, {
+        pointToLayer: function(feature, latlng){
+            return pointToLayer(feature, latlng, attributes);}
+    }).addTo(mymap);
+};
+//Convert markers to circle markers
+function pointToLayer(feature, latlng, attributes){
+    //Determine which attribute to visualize with proportional symbols
+    var attribute = attributes[0];
+    //create marker options
+    var options = {
+        fillColor: "#FFD451",
+        color: "#ffffcc",
+        weight: 1,
+        opacity: 1,
+        fillOpacity: 0.8
+    };
+
+    //For each feature, determine its value for the selected attribute
+    var attValue = Number(feature.properties[attribute]);
+
+    //Give each feature's circle marker a radius based on its attribute value(=population!)
+    options.radius = calcPropRadius(attValue);
+
+    //create circle marker layer
+    var layer = L.circleMarker(latlng, options);
+
+    //popupContent += "<p><b>Passenger in " + year + ":</b> " + feature.properties[attribute] + " thousand</p>"; 
+    //--replaced as OOP
+    var popupContent = new PopupContent(feature.properties, attribute);
+
+    //add popup to circle marker
+    layer.bindPopup(popupContent.formatted,{
+        offset: new L.Point(0,-options.radius)//offset the popup based on its radius not to cover the proportional symbol
+    });
+    //return the circle marker to the L.geoJson pointToLayer option
+    return layer;
+};
+//Store the calculated max, mean, and min values as properties in a new, "globally" accessible dataStats "object"
+function calcStats(data){
+    //create empty array to store all data values
+    var allValues = [];
+
+    //loop through each city
+    for(var city of data.features){
+    
+        //loop through each year
+        for(var year = 2012; year <= 2018; year+=1){
+            //get population for current year
+           var value = city.properties["PASS_"+ String(year)];
+
+            //add value to array
+            allValues.push(value);
+        }
     }
-];
-var arraysArray = [
-    ['Madison', 23209],
-    ['Milwaukee', 593833],
-    ['Green Bay', 104057]
-];
-*/
+    //get min, max, mean stats for our array
+    dataStats.min = Math.min(...allValues);
+    dataStats.max = Math.max(...allValues);
+    //calculate mean
+    var sum = allValues.reduce(function(a, b){return a+b;}); //(accumulator,current value)
+    dataStats.mean = sum/ allValues.length;
+}
+
+//calculate the radius of each proportional symbol
+function calcPropRadius(attValue) {
+    
+    //constant factor adjusts symbol sizes evenly
+    var minRadius = 5;
+    
+    //Flannery Appearance Compensation formula
+    var radius = 1.0083 * Math.pow(attValue/minValue,0.5715) * minRadius
+
+    return radius;
+};
+
+//Step 4: Create panels including 2 parts with control : 1.sequence;2.legend 
+//Important concept: trigger update content after click!
+function createControls(attributes){
+    var SequenceControl = L.Control.extend({ //to add properties and methods to the class prototype object;the revised object becomes the prototype for SequenceControl
+        options: {position: 'bottomleft'} ,//'topleft', 'topright'(default), 'bottomleft' or 'bottomright'
+        onAdd: function () { //onnAdd() always is required for a new Leaflet control!
+            // create the control container div with a particular class name; more convenient than document.createElement() method.
+            var container = L.DomUtil.create('div', 'sequence-control-container');
+            $(container).append('<h2>Year from 2012-2018</h2>');
+            //create range input element (slider)
+            $(container).append('<input class="range-slider" type="range">');
+            //add skip buttons
+            $(container).append('<button class="step" id="reverse" title="Reverse">Reverse</button>');
+            $(container).append('<button class="step" id="forward" title="Forward">Forward</button>');
+
+            //disable any mouse event listeners for the container
+            L.DomEvent.disableClickPropagation(container);
+
+            // ... initialize other DOM elements (??)
+            return container;
+        }
+    });
+    var LegendControl = L.Control.extend({
+        options: {position: 'topleft'},
+        onAdd: function () {
+            // create the control container with a particular class name
+            var container = L.DomUtil.create('div', 'legend-control-container');
+            // $(container).append(popupContent2.formatted);
+            //add temporal legend div to container
+            $(container).append('<div class="temporal-legend">')
+
+            //Step<svg> 1: start attribute legend svg string
+            svg = '<svg id="attribute-legend" width="130px" height="130px">';
+            //array of circle names to base loop on
+            var circles = ["max", "mean", "min"];
+            //Step<svg> 2: loop to add each circle and text to svg string
+            for (var i=0; i<circles.length; i++){
+                //Step<svg> 3: assign the r and cy attributes
+                var radius = calcPropRadius(dataStats[circles[i]]);
+                var cy = 130 - radius; 
+                //circle string
+                svg += '<circle class="legend-circle" id="' + circles[i] + '" r="' + radius + '"cy="' + cy + '" fill="#FFD451" fill-opacity="0.6" stroke="#ffffcc" cx="65"/>';
+
+                //Step<svg> 4: evenly space out labels
+                var textY = i * 50 + 20/(i*i);
+
+                //Step<svg> 5: text string
+                svg += '<text id="' + circles[i] + '-text" x="65" y="' + textY + '" transform="rotate(-5,300,-40)" class = "legend">' + Math.round(dataStats[circles[i]]*100)/100 + "thousand" + '</text>';
+
+            };
+            //Step<svg> 6: close svg string
+            svg += "</svg>";
+
+            index = $('.range-slider').val()
+            word = "<h1>Passenger in "+ attributes[index].substr(5,8)+":</h1>"
+
+            //Step<svg> 7: add (1)legend title, and(2)attribute legend svg, to container
+            $(container).html(word+"<br>"+svg);   
+
+            return container;
+        }
+    });
+    mymap.addControl(new SequenceControl());
+    //set slider attributes
+    $('.range-slider').attr({
+        max: 6,
+        min: 0,
+        value: 0,
+        step: 1
+    }); 
+    mymap.addControl(new LegendControl()); //after slider attributes to get the index = $('.range-slider').val() ="0"
+    $('#reverse').html('<img src="img/reverse.png">');
+    $('#forward').html('<img src="img/forward.png">');
+
+    //click listener for buttons (Add listeners after adding control!)
+    $('.step').click(function(){
+        //Step<click> 1:get the old index value
+        var index = $('.range-slider').val(); 
+        //Step<click> 2: increment or decrement depending on button clicked
+        if ($(this).attr('id') == 'forward'){
+            index++;
+            //Step<click> 3: if past the last attribute, wrap around to first attribute
+            index = index > 6 ? 0 : index;
+            word = "<h1>Passenger in "+ attributes[index].substr(5,8)+":</h1>"
+
+        } else if ($(this).attr('id') == 'reverse'){
+            index--;
+            //Step<click> 4: if past the first attribute, wrap around to last attribute
+            index = index < 0 ? 6 : index;
+            word = "<h1>Passenger in "+ attributes[index].substr(5,8)+":</h1>"
+
+        };
+        //Step<click> 5: update slider
+        $('.range-slider').val(index);
+        //Called in both step button and slider event listener handlers
+
+        //Step<click> 6: pass new attribute to update symbols
+        $('.legend-control-container').html(word+"<br>"+svg)
+        updateAfterClick(attributes[index]);        
+    });
+};
+//Resize proportional symbols according to new attribute values and renew the popup!
+function updateAfterClick(attribute){
+    mymap.eachLayer(function(layer){
+        if (layer.feature && layer.feature.properties[attribute]){
+            //update the layer style and popup
+            //access feature properties
+            var props = layer.feature.properties;
+
+            //update each feature's radius based on new attribute values
+            var radius = calcPropRadius(props[attribute]);
+            layer.setRadius(radius);
+
+            //add city to popup content string
+            // var popupContent = "<p><b>City:</b> " + props.STNNAME + "</p>"; -->replaced as OOP
+            var popupContent = new PopupContent(props, attribute);
+
+            //update popup content
+            popup = layer.getPopup();
+            popup.setContent(popupContent.formatted).update(); //OOP
+        };
+    });
+};
+
+//Execute
+$(document).ready(createMap);

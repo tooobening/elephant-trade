@@ -1,23 +1,24 @@
 /* static style */
-.axis path, .axis line {
-    fill: gold;
-    stroke: black;
-    stroke-width: 2px;
-    shape-rendering: crispEdges;
+.attr {
+    fill: rgba(105, 195, 120, 0.5);
+    stroke: rgb(112, 163, 126);
+    stroke-width: 0.8px;
+}
+.countries{
+    fill: rgba(2, 7, 3, 0.774);
+}
+.gratLines {
+    fill: none;
+    stroke: #999;
+    stroke-width: 0.5px;
 }
 
-.axis text {
-    font-family:'Exan';
-    font-size: 1em;
+.gratBackground {
+    fill: rgba(0, 24, 77, 0.8);
 }
 
-.title {
-    font-family:'Exan';
-    font-size: 2em;
-    stroke: gold;
-    font-display: bold;
-}
-.labels tspan{
-    font-family:'Exan';
-    font-size: 10pt;   
+.map {
+    border: medium solid rgb(73, 73, 73);
+    margin-top: 2em;
+    margin-left: 5em;
 }

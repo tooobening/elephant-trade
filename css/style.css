@@ -17,8 +17,20 @@
     fill: rgba(0, 24, 77, 0.8);
 }
 
-.map {
+.map, .chart {
     border: medium solid rgb(73, 73, 73);
     margin-top: 2em;
-    margin-left: 5em;
+    margin-left: 0.5em;
+    background-color: rgba(0, 24, 77, 0.5);
+    /* margin-left: 5em; */
+}
+.numbers {
+    fill: white;
+    font-family: 'EXAN';
+    font-size: 10pt;
+}
+.chartTitle {
+    font-family: Book Antiqua;
+    font-size: 11pt;
+    font-weight: bold;
 }

@@ -53,11 +53,33 @@
                 .attr("d", path);
             //join csv data to GeoJSON enumeration units
             attrCountries = joinData(attrCountries, csvData);
-            //create the color scale
-            var colorScale = makeColorScale(csvData);
             //add enumeration units to the map
-            setEnumerationUnits(attrCountries, map, path,colorScale);            
+            setEnumerationUnits(attrCountries, map, path);            
         };  
+            
+            //9 variables for data join
+            // var attrArray = ['Educational','Hunting trophy','Law enforcement','Medica','Personal','Circus/travelling exhibition','Scientific','Commercial','Unknown']
+        //     //loop through csv to assign each set of csv attribute values to geojson region
+        //     for (var i=0; i<csvData.length; i++){
+        //         var csvRegion = csvData[i]; //the current region
+        //         var csvKey = csvRegion.ADM0_A3; //the CSV primary key: ADM0_A3
+        //     //loop through geojson regions to find correct region
+        //     for (var a=0; a<attrCountries.length; a++){
+
+        //         var geojsonProps = attrCountries[a].properties; //the current region geojson properties
+        //         var geojsonKey = geojsonProps.ADM0_A3; //the geojson primary key
+
+        //         //where primary keys match, transfer csv data to geojson properties object
+        //         if (geojsonKey == csvKey){
+
+        //             //assign all attributes and values
+        //             attrArray.forEach(function(attr){
+        //                 var val = parseFloat(csvRegion[attr]); //get csv attribute value; use parseFloat() to change the CSV strings into numbers 
+        //                 geojsonProps[attr] = val; //assign attribute and value to geojson properties
+        //             });
+        //         };
+        //     }; 
+        // };
     };//end of setMap()
     
     function setGraticule(map, path){
@@ -87,27 +109,26 @@
         for (var i=0; i<csvData.length; i++){
             var csvRegion = csvData[i]; //the current region
             var csvKey = csvRegion.ADM0_A3; //the CSV primary key: ADM0_A3
-            //loop through geojson regions to find correct region
-            for (var a=0; a<attrCountries.length; a++){
+        //loop through geojson regions to find correct region
+        for (var a=0; a<attrCountries.length; a++){
 
-                var geojsonProps = attrCountries[a].properties; //the current region geojson properties
-                var geojsonKey = geojsonProps.ADM0_A3; //the geojson primary key
+            var geojsonProps = attrCountries[a].properties; //the current region geojson properties
+            var geojsonKey = geojsonProps.ADM0_A3; //the geojson primary key
 
-                //where primary keys match, transfer csv data to geojson properties object
-                if (geojsonKey == csvKey){
+            //where primary keys match, transfer csv data to geojson properties object
+            if (geojsonKey == csvKey){
 
-                    //assign all attributes and values
-                    attrArray.forEach(function(attr){
-                        var val = parseFloat(csvRegion[attr]); //get csv attribute value; use parseFloat() to change the CSV strings into numbers 
-                        geojsonProps[attr] = val; //assign attribute and value to geojson properties
-                    });
-                };
+                //assign all attributes and values
+                attrArray.forEach(function(attr){
+                    var val = parseFloat(csvRegion[attr]); //get csv attribute value; use parseFloat() to change the CSV strings into numbers 
+                    geojsonProps[attr] = val; //assign attribute and value to geojson properties
+                });
             };
-        };
+        }; 
         return attrCountries;
     };
     
-    function setEnumerationUnits(attrCountries, map, path, colorScale){
+    function setEnumerationUnits(attrCountries, map, path){
         //...REGIONS BLOCK FROM MODULE 8
         var attr = map.selectAll(".attr")
                 .data(attrCountries)
@@ -116,44 +137,40 @@
                 .attr("class", function(d){
                     return "attr " + d.properties.NAME; //DO add space after attr"_" !!!?
                 })
-                .attr("d", path)
-                .style("fill", function(d){
-                    return colorScale(d.properties[expressed]);
-                });
+                .attr("d", path);
     };
-    //function to create color scale generator
-    function makeColorScale(data){
-        var colorClasses = [ //https://colorbrewer2.org/
-            "#feebe2",
-            "#fbb4b9",
-            "#f768a1",
-            "#c51b8a",
-            "#7a0177"
-        ];
+    
+            // //create graticule generator 
+            // var graticule = d3.geoGraticule()
+            //     .step([20, 20]); //place graticule lines every 5 degrees of longitude and latitude
+            
+            // //create graticule background
+            // var gratBackground = map.append("path")
+            // .datum(graticule.outline()) //bind graticule background
+            // .attr("class", "gratBackground") //assign class for styling
+            // .attr("d", path) //project graticule
 
-        //create color scale generator
-        var colorScale = d3.scaleQuantile()
-            .range(colorClasses);
+            // //create graticule lines
+            // var gratLines = map.selectAll(".gratLines") //select graticule elements that will be created
+            //     .data(graticule.lines()) //bind graticule lines to each element to be created
+            //     .enter() //create an element for each datum
+            //     .append("path") //append each element to the svg as a path element
+            //     .attr("class", "gratLines") //assign class for styling
+            //     .attr("d", path); //project graticule lines
 
-        //build array of all values of the expressed attribute
-        var domainArray = [];
-        for (var i=0; i<data.length; i++){
-            var val = parseFloat(data[i][expressed]);
-            domainArray.push(val);
-        };
+            // // add base map to map (put these codes below after the gratLines to show on top of the gratLines!)
+            // var countries = map.append("path")
+            //     .datum(worldCountries) //.geojson
+            //     .attr("class", "countries")
+            //     .attr("d", path);
 
-        //cluster data using ckmeans clustering algorithm to create natural breaks
-        var clusters = ss.ckmeans(domainArray, 5);
-        //reset domain array to cluster minimums
-        domainArray = clusters.map(function(d){
-            return d3.min(d);
-        });
-        //remove first value from domain array to create class breakpoints
-        domainArray.shift();
-
-        //assign array of last 4 cluster minimums as domain
-        colorScale.domain(domainArray);
-
-        return colorScale;
-    };
+            //add attr regions to map
+            // var attr = map.selectAll(".attr")
+            //     .data(attrCountries)
+            //     .enter()
+            //     .append("path")
+            //     .attr("class", function(d){
+            //         return "attr " + d.properties.NAME; //DO add space after attr"_" !!!?
+            //     })
+            //     .attr("d", path);
 })(); //last line of main.js

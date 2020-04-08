@@ -1,8 +1,8 @@
 /* static style */
 .attr {
     fill: rgba(105, 195, 120, 0.5);
-    stroke: rgb(112, 163, 126);
-    stroke-width: 0.8px;
+    /* stroke: rgb(255, 64, 64); */
+    stroke-width: 0.5px;
 }
 .countries{
     fill: rgba(2, 7, 3, 0.774);

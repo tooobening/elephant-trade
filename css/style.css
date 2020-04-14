@@ -1,36 +1,59 @@
 /* static style */
 .attr {
-    fill: rgba(105, 195, 120, 0.5);
-    /* stroke: rgb(255, 64, 64); */
-    stroke-width: 0.5px;
+    /* stroke:  rgba(0, 24, 77); */
+    stroke-width: 1px;
 }
 .countries{
-    fill: rgba(2, 7, 3, 0.774);
+    fill:rgb(172, 172, 172,0.8);
+    stroke: rgb(124, 124, 124);
+
 }
 .gratLines {
     fill: none;
-    stroke: #999;
-    stroke-width: 0.5px;
+    stroke: rgb(194, 194, 194);
+    stroke-width: 1px;
 }
 
 .gratBackground {
-    fill: rgba(0, 24, 77, 0.8);
+    fill: whitesmoke;
+    /* fill: rgba(0, 24, 77, 0.8); */
 }
 
 .map, .chart {
     border: medium solid rgb(73, 73, 73);
     margin-top: 2em;
-    margin-left: 0.5em;
-    background-color: rgba(0, 24, 77, 0.5);
+    margin-left: 0.2em;
+    margin-right: 0.2em;
+    background-color: rgba(172, 255, 47, 0.8);
+    /* background-color: rgba(0, 24, 77, 0.5); */
     /* margin-left: 5em; */
 }
 .numbers {
-    fill: white;
+    fill: rgb(0, 0, 0);
     font-family: 'EXAN';
+    font-weight: bold;
     font-size: 10pt;
 }
 .chartTitle {
-    font-family: Book Antiqua;
+    font-family:'Proxima Nova', sans-serif ;/*Book Antiqua*/
     font-size: 11pt;
     font-weight: bold;
+}
+
+.dropdown {
+    background-color:rgba(172, 255, 47, 0.5);
+    position: absolute;
+    top: 500px;
+    left: 30px;
+    z-index: 20;
+    font-family:'Proxima Nova', sans-serif ;/*Book Antiqua*/
+    font-size: 12pt;
+    font-weight: bold;
+    padding: 2px;
+    border: 3px solid rgb(0, 0, 0);
+    box-shadow: 2px 2px 4px rgb(0, 0, 0);
+}
+
+option {
+    font-weight: normal;
 }

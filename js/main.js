@@ -7,11 +7,11 @@
     //set up choropleth map
     function setMap(){
         //map frame dimensions
-        var width = 960,
+        var width = window.innerWidth * 0.705, //make the widths of the chart and map responsive to each other by setting each to a fraction of the browser window's innerWidth property
         height = 500;
 
         //create new svg container for the map
-        var map = d3.select("#map")
+        var map = d3.select("body")
             .append("svg")
             .attr("class", "map")
             .attr("width", width)
@@ -58,7 +58,9 @@
             //add enumeration units to the map
             setEnumerationUnits(attrCountries, map, path,colorScale);
             //add coordinated visualization to the map
-            setChart(csvData, colorScale);       
+            setChart(csvData, colorScale);
+            //add dropdown menu for attribute selection 
+            createDropdown();     
         };  
     };//end of setMap()
     
@@ -116,13 +118,40 @@
                 .enter()
                 .append("path")
                 .attr("class", function(d){
-                    return "attr " + d.properties.NAME; //DO add space after attr"_" !!!?
+                    return "attr " + d.properties.NAME; //DO add space after attr" " !!!?
                 })
                 .attr("d", path)
                 .style("fill", function(d){
                     return colorScale(d.properties[expressed]);
                 });
     };
+
+    //Create a dropdown menu for attribute selection
+    function createDropdown(){
+        //add select element
+        var dropdown = d3.select("body")
+            .append("select")
+            .attr("class", "dropdown");
+
+        //add initial option
+        var titleOption = dropdown.append("option")
+            .attr("class", "titleOption")
+            .attr("disabled", "true") //ensures that the user cannot mistakenly select option
+            .text("Select Attribute");
+
+        //add attribute name options
+        var attrOptions = dropdown.selectAll("attrOptions")
+            .data(attrArray)
+            .enter()
+            .append("option")
+            .attr("value", function(d){ return d })
+            .text(function(d){ return d });
+    };
+
+
+
+
+
     //function to create color scale generator
     function makeColorScale(data){
         var colorClasses = [ //https://colorbrewer2.org/
@@ -161,11 +190,11 @@
     //function to create coordinated bar chart
     function setChart(csvData, colorScale){
         //chart frame dimensions
-        var chartWidth = 340,
+        var chartWidth = window.innerWidth * 0.25 
             chartHeight = 500;//340*460/550
 
         //create a second svg element to hold the bar chart
-        var chart = d3.select("#bar1")
+        var chart = d3.select("body")
             .append("svg")
             .attr("width", chartWidth)
             .attr("height", chartHeight)

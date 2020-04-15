@@ -2,6 +2,22 @@
 body{
     background-color: rgba(51, 85, 52, 0.3);
 }
+#v1, .ccle div {
+    margin-top: 10pt;
+    display: inline-block;/*paralleled div*/
+    vertical-align: top;
+    height: 80px;
+    /* border: 1px solid #FF0000; */
+    /* border-radius:3px;margin: 2px; */
+}
+#v1{
+    width: 100px;
+    background-color: rgb(220, 20, 60,0.5);
+}
+#v2{
+    width:1200px;
+}
+
 .attr,.bar {
     stroke: rgb(247, 240, 240);
     fill:rgb(32, 32, 32)
@@ -70,8 +86,8 @@ body{
 .dropdown {
     background-color:rgba(172, 255, 47, 0.5);
     position: absolute; /*so that not affected by other elements on the page*/
-    top: 160px;
-    left: 730px;
+    top: 150px;
+    left: 750px;
     z-index: 10; /*ensures that the menu <select> element floats to the top of all other elements on the page???*/
     font-family:'Proxima Nova', sans-serif ;/*Book Antiqua*/
     font-size: 12pt;
@@ -96,7 +112,9 @@ body{
 h1 { 
     position: static;
     text-align: center;
-    border-radius:0px;
+    margin-top: 0pt;
+    margin-bottom: -5pt;
+    border-radius:50px;
     background-color:rgba(15, 68, 5, 0.486);
     box-shadow: 10px 3px 20px 10px rgba(108, 163, 25, 0.2);
     font-family: Nunito; 
@@ -104,37 +122,43 @@ h1 {
     font-style: normal; 
     font-variant: small-caps;
     font-weight: 700;
-    line-height: 50px;
+    line-height: 45px;
  } 
 h2 { 
     position: relative;
     left: 0px;
     text-align: left;
-    border-radius: 6pt;
     font-family: Nunito; 
-    font-size: 18px;
+    font-size: 16px;
     font-style: normal; 
     font-variant: small-caps;
     font-weight: 700;
     margin-top:10px;
+    margin-bottom: -5pt;
     
 } 
 
 h3, .chartTitle_P{
     font-family: Nunito;
-    font-size: 18px;
+    font-size: 14px;
     font-style: normal;
     font-variant: normal;
     font-weight: 700;
     line-height: 18px; 
+    position: absolute;
+    top:595px;
+    left:100px;
 }
 p {
-    font-family: Nunito;
-    font-size: 14px; 
+    /* position: static; */
+    /* top:50pt; */
+    font-size: 12px; 
     font-style: normal; 
     font-variant: normal; 
     font-weight: 500; 
-    line-height: 10px; 
+    line-height: 16px; 
+    margin-top: 0pt;
+    margin-bottom: 5pt;
 }
 /* 
 .infolabel {

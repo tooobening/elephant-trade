@@ -183,7 +183,7 @@
 
         var attrName = infolabel.append("div")
             .attr("class", "labelname")
-            .html("<p>"+ props.NAME +"</p>");
+            .html("<h2>"+ props.NAME +"</h2>");
     };
       
     //Reset the element style on mouseout
@@ -331,7 +331,7 @@
             .attr("x", 10)
             .attr("y", 50)
             .attr("class", "chartTitle")
-            .text(expressed);
+            .text(expressed +".");
         var chartTitle_P = chart.append("text")
             .attr("x", 10)
             .attr("y", 25)

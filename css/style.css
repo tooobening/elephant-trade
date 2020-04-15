@@ -1,13 +1,15 @@
 /* static style */
-
-.attr {
-    /* stroke:  rgba(0, 24, 77); */
-    stroke-width: 1px;
+body{
+    background-color: rgba(51, 85, 52, 0.3);
+}
+.attr,.bar {
+    stroke: rgb(247, 240, 240);
+    fill:rgb(32, 32, 32)
     cursor:crosshair;
 }
 .countries{
     fill:rgb(172, 172, 172,0.8);
-    stroke: rgb(124, 124, 124);
+    stroke: rgb(247, 240, 240);
 }
 .gratLines {
     fill: none;
@@ -16,17 +18,30 @@
 }
 
 .gratBackground {
-    fill: whitesmoke;
+    fill: rgb(64, 133, 90,0.8)
     /* fill: rgba(0, 24, 77, 0.8); */
 }
-
-.map, .chart {
+.map  {
     /* border: medium solid rgb(73, 73, 73); */
-    box-shadow: 2px 4px 10px 4px rgb(0, 0, 0,0.2);
+    box-shadow: 2px 4px 10px 4px rgb(0, 0, 0,0.5);
     margin-left: 0.2em;
     margin-right: 0.2em;
-    background-color: rgba(172, 255, 47, 0.4);
-    border-radius:10pt;
+    /* padding:1em; */
+    /* background-color: rgba(172, 255, 47,0.8); */
+    background-color: rgb(64, 133, 90);
+    border-radius:100pt;
+    /* background-color: rgba(0, 24, 77, 0.5); */
+    /* margin-left: 5em; */
+}
+.chart {
+    /* border: medium solid rgb(73, 73, 73); */
+    box-shadow: 2px 4px 10px 4px rgb(0, 0, 0,0.5);
+    margin-left: 0.2em;
+    margin-right: 0.2em;
+    /* padding:1em; */
+    /* background-color: rgba(172, 255, 47,0.8); */
+    background-color: rgb(64, 133, 90);
+    border-radius:5pt;
     /* background-color: rgba(0, 24, 77, 0.5); */
     /* margin-left: 5em; */
 }
@@ -35,18 +50,28 @@
     font-family: 'EXAN';
     font-weight: bold;
     font-size: 10pt;
+    cursor:crosshair;
+}
+.names{
+    position: absolute;
+    fill: rgb(0, 0, 0);
+    font-family: 'Proxima Nova', sans-serif ;
+    font-size: 8pt;
+    cursor: crosshair;
 }
 .chartTitle {
-    font-family:'Proxima Nova', sans-serif ;/*Book Antiqua*/
-    font-size: 11pt;
-    font-weight: bold;
+    font-family:Nunito;
+    font-size: 12pt;
+    /* font-weight: bold; */
+    position: absolute;
 }
+
 
 .dropdown {
     background-color:rgba(172, 255, 47, 0.5);
     position: absolute; /*so that not affected by other elements on the page*/
-    top: 500px;
-    left: 30px;
+    top: 160px;
+    left: 730px;
     z-index: 10; /*ensures that the menu <select> element floats to the top of all other elements on the page???*/
     font-family:'Proxima Nova', sans-serif ;/*Book Antiqua*/
     font-size: 12pt;
@@ -55,14 +80,12 @@
     box-shadow: 2px 2px 4px rgb(0, 0, 0);
     border-radius: 6pt;
     cursor: crosshair;; 
+}
 
 
-}
-.option {
-    font-family:'Proxima Nova', sans-serif ;
-}
 
 .dropdown:hover {
+    background-color:rgba(172, 255, 47, 0.8);
     padding:3px;
     /* cursor:pointer; */
     border-radius: 6pt;
@@ -70,40 +93,72 @@
 
 }
 
-option {
-    font-weight: normal; /*so not emboldened by the font-weight of the <select> element*/ 
-    cursor:url('/img/cursor_h.png'),auto; 
-}
-
 h1 { 
-    position: relative;
-    left: 20px;
+    position: static;
     text-align: center;
-    border-radius: 12pt;
-    background-color:rgba(172, 255, 47, 0.2);
+    border-radius:0px;
+    background-color:rgba(15, 68, 5, 0.486);
     box-shadow: 10px 3px 20px 10px rgba(108, 163, 25, 0.2);
     font-family: Nunito; 
-    color: grey;
-    font-size: 28px;
+    font-size: 36px;
     font-style: normal; 
     font-variant: small-caps;
     font-weight: 700;
-    line-height: 56px;
+    line-height: 50px;
  } 
- 
-h3 { 
+h2 { 
+    position: relative;
+    left: 0px;
+    text-align: left;
+    border-radius: 6pt;
+    font-family: Nunito; 
+    font-size: 18px;
+    font-style: normal; 
+    font-variant: small-caps;
+    font-weight: 700;
+    margin-top:10px;
+    
+} 
+
+h3, .chartTitle_P{
     font-family: Nunito;
-    font-size: 14px;
+    font-size: 18px;
     font-style: normal;
     font-variant: normal;
     font-weight: 700;
-    line-height: 15.4px; 
+    line-height: 18px; 
 }
 p {
     font-family: Nunito;
     font-size: 14px; 
     font-style: normal; 
     font-variant: normal; 
-    font-weight: 400; 
-    line-height: 20px; 
-} 
+    font-weight: 500; 
+    line-height: 10px; 
+}
+/* 
+.infolabel {
+    position: absolute;
+    height:70px;
+    min-width: 60px;
+
+    padding-left: 10px;
+    font-family: Nunito;
+    font-weight: 700;
+    
+} */
+
+.infolabel {
+    margin: 0 20px 0 0;
+    position: absolute;
+    height: 70px;
+    min-width: 70px;
+    font-family: Nunito;
+    font-weight: 700;
+    color: #000;
+    background-color: rgba(172, 255, 47,0.8);
+    border: solid thin #fff;
+    border-radius:10pt;
+    padding: 5px 10px;
+    top: -75px;
+}

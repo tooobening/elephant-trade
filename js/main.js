@@ -1,6 +1,6 @@
 (function(){
-    var attrArray = ['Educational','Hunting trophy','Law enforcement','Medica','Personal','Circus/travelling exhibition','Scientific','Commercial','Unknown'];
-    var expressed = attrArray[5];//initial attribute
+    var attrArray = ['Personal','Tourism','Commercial','Unknown','Others'];
+    var expressed = attrArray[1];//initial attribute
     
     //chart frame dimensions
     var chartWidth = window.innerWidth * 0.25,
@@ -15,7 +15,7 @@
     //create a scale to size bars proportionally to frame and for axis
     var yScale = d3.scaleLinear()
     .range([chartHeight,0])
-    .domain([0, 250]);
+    .domain([0, 280]);
 
     
     
@@ -25,8 +25,8 @@
     //set up choropleth map
     function setMap(){
         //map frame dimensions
-        var width = window.innerWidth * 0.7, //make the widths of the chart and map responsive to each other by setting each to a fraction of the browser window's innerWidth property
-        height = 500;
+        var width = window.innerWidth * 0.703, //make the widths of the chart and map responsive to each other by setting each to a fraction of the browser window's innerWidth property
+            height = 500;
 
         //create new svg container for the map
         var map = d3.select("body")
@@ -34,6 +34,14 @@
             .attr("class", "map")
             .attr("width", width)
             .attr("height", height);
+
+        //create a second svg element to hold the bar chart
+        var chart = d3.select("body")
+            .append("svg")
+            .attr("class", "chart")            
+            .attr("width", chartWidth)
+            .attr("height", chartHeight);
+ 
 
         //create equal-area projection using tow generators
         var projection = d3.geoCylindricalEqualArea() //https://github.com/d3/d3-geo-projection/
@@ -74,7 +82,7 @@
             //add enumeration units to the map
             setEnumerationUnits(attrCountries, map, path,colorScale);
             //add coordinated visualization to the map
-            setChart(csvData, colorScale);
+            setChart(csvData,chart, colorScale);
             //add dropdown menu for attribute 
             createDropdown(csvData);     
         };  
@@ -127,21 +135,213 @@
     };
     
     function setEnumerationUnits(attrCountries, map, path, colorScale){
-        //...REGIONS BLOCK FROM MODULE 8
-        console.log('attrCountries:',attrCountries)
+        console.log('38',attrCountries)
         var attr = map.selectAll(".attr")
                 .data(attrCountries)
                 .enter()
                 .append("path")
                 .attr("class", function(d){
-                    return "attr " + d.properties.NAME; //DO add space after attr" " !!!?
+                    return "attr " + d.properties.ADM0_A3; //DO add space after attr" " !!!?
                 })
                 .attr("d", path)
                 .style("fill", function(d){
+                    console.log('d:',d)
                     return colorScale(d.properties[expressed]);
-                });
+                })
+                .on("mouseover", function(d){
+                    highlight(d.properties);
+                })
+                .on("mouseout", function(d){
+                    dehighlight(d.properties);
+                })
+                .on("mousemove", moveLabel);
+        var desc = attr.append("desc")
+            .text('{"stroke": "none", "stroke-width": "0px"}');
+        
+    };
+    //Highlight enumeration units and bars
+    function highlight(props){
+        //change stroke
+            var selected = d3.selectAll("." + props.ADM0_A3)
+                .style("stroke", "#000") //http://www.colors.commutercreative.com/grid/
+                .style("stroke-width", "1.5px");
+        setLabel(props);
     };
 
+    //Create dynamic label when retrieval
+    function setLabel(props){
+        //label content
+        var labelAttribute = "<h2>" + props[expressed] +
+            "</h2>";
+
+        //create info label div
+        var infolabel = d3.select("body")
+            .append("div")
+            .attr("class", "infolabel")
+            .attr("id", props.ADM0_A3 + "_label")
+            .html(labelAttribute);
+
+        var attrName = infolabel.append("div")
+            .attr("class", "labelname")
+            .html("<p>"+ props.NAME +"</p>");
+    };
+      
+    //Reset the element style on mouseout
+    function dehighlight(props){
+        var selected = d3.selectAll("." + props.ADM0_A3)
+            .style("stroke", function(){
+                return getStyle(this, "stroke")
+            })
+            .style("stroke-width", function(){
+                return getStyle(this, "stroke-width")
+            });
+
+        function getStyle(element, styleName){
+            var styleText = d3.select(element)
+                .select("desc")
+                .text();
+
+            var styleObject = JSON.parse(styleText);
+
+            return styleObject[styleName];
+        };
+        d3.select(".infolabel")
+            .remove();
+    };
+    //Move info label with mouse
+    function moveLabel(){
+        //get width of label
+        var labelWidth = d3.select(".infolabel")
+            .node()
+            .getBoundingClientRect()
+            .width; //used to set the backup x that will shift the label to the left of the mouse when it approaches the right side of the page 
+
+        //use coordinates of mousemove event to set label coordinates
+        var x1 = d3.event.clientX + 10,
+            y1 = d3.event.clientY + 0,
+            x2 = d3.event.clientX - labelWidth - 10,//backup
+            y2 = d3.event.clientY -50;//backup
+        //horizontal label coordinate, testing for overflow
+        var x = d3.event.clientX > window.innerWidth - labelWidth - 20 ? x2 : x1; 
+        
+        //vertical label coordinate, testing for overflow
+        var y = d3.event.clientY >400 ? y2 : y1; 
+        // console.log(y)
+        d3.select(".infolabel")
+            .style("left", x + "px")
+            .style("top", y + "px");
+    };
+
+    //function to create coordinated bar chart
+    function setChart(csvData, chart, colorScale){
+        //set bars for each province
+        console.log('238',csvData)
+        console.log('239',csvData[expressed])
+        var bars = chart.selectAll(".bar")
+            .data(csvData)
+            .enter()
+            .append("rect")
+            .sort(function(a, b){ //
+                return b[expressed]-a[expressed] //2st - 1st orders the bars from greatest
+            })
+            .attr("class", function(d){
+                return "bar " + d.ADM0_A3;
+            })
+            .attr("width", chartInnerWidth / csvData.length - 1)
+
+            .attr("x", function(d,i){
+                return i * (chartInnerWidth / csvData.length) + leftPadding;
+            })
+            
+            .on("mouseover", highlight)
+            .on("mouseout", dehighlight)
+            .on("mousemove", moveLabel)
+            
+            //size/resize bars
+            .attr("height", function(d){
+                return 500 - yScale(parseFloat(d[expressed]));
+            })
+            .attr("y", function(d){
+                return yScale(parseFloat(d[expressed])) + topBottomPadding;
+            })
+            //color/recolor bars
+            .style("fill", function(d){
+                var value = d[expressed];
+                if(value) {
+                    return colorScale(value);
+                } else {
+                    return "#ccc";
+                }
+            });
+        var desc = bars.append("desc") 
+            .text('{"stroke": "none", "stroke-width": "0px"}'); //<desc></desc> is child within <rect></rect>
+            
+
+        //Contextualize: annotate bars with attribute value and country text as label
+        var numbers = chart.selectAll(".numbers")
+            .data(csvData)
+            .enter()
+            .append("text")
+            .sort(function(a, b){
+                return b[expressed]-a[expressed]
+            })
+            .attr("class", function(d){
+                return "numbers " + d.ADM0_A3;
+            })
+            .attr("text-anchor", "middle")
+            .attr("x", function(d, i){
+                var fraction = chartInnerWidth / csvData.length;
+                return i * fraction + (fraction - 1);
+            })
+            .attr("y", function(d){
+                return yScale(parseFloat(d[expressed]));
+            })
+            .text(function(d){
+                return d[expressed];
+            })
+            .on("mouseover", highlight)
+            .on("mouseout", dehighlight)
+        var desc = numbers.append("desc") 
+            .text('{"stroke": "none", "stroke-width": "0px"}'); //<desc></desc> is child within <text></text>    
+        var names = chart.selectAll(".names")
+            .data(csvData)
+            .enter()
+            .append("text")
+            .sort(function(a, b){
+                return b[expressed]-a[expressed]
+            })
+            .attr("class", function(d){
+                return "names " + d.ADM0_A3;
+            })
+            .attr("text-anchor", "middle")
+            .attr("x", function(d, i){
+                return i * (chartInnerWidth / csvData.length)+22})
+            .attr("y", function(d){
+                return yScale(parseFloat(d[expressed]))-13;
+            })
+            .text(function(d){
+                return d['ADM0_A3'];
+            })
+            .on("mouseover", highlight)
+            .on("mouseout", dehighlight);
+        var desc = names.append("desc") 
+            .text('{"stroke": "none", "stroke-width": "0px"}'); //<desc></desc> is child within <text></text> 
+        // Create a text element for the chart title
+        var chartTitle = chart.append("text")
+            .attr("x", 10)
+            .attr("y", 50)
+            .attr("class", "chartTitle")
+            .text(expressed);
+        var chartTitle_P = chart.append("text")
+            .attr("x", 10)
+            .attr("y", 25)
+            .attr("class", "chartTitle_P")
+            .text("PURPOSE:");
+        //set bar positions, heights, and colors
+        // updateChart(bars, csvData.length, colorScale,numbers,names);
+    };//end of setChart()
+    
+    
     //Create a dropdown menu for attribute selection
     function createDropdown(csvData){
         //add select element
@@ -164,85 +364,9 @@
             .append("option")
             .attr("value", function(d){ return d })
             .text(function(d){ return d });
-    };
+    };//end of createDropdown()
     
-    //function to create coordinated bar chart
-    function setChart(csvData, colorScale){
-        // //chart frame dimensions
-        // var chartWidth = window.innerWidth * 0.25 
-        //     chartHeight = 500;//340*460/550
-
-        //create a second svg element to hold the bar chart
-        var chart = d3.select("body")
-            .append("svg")
-            .attr("width", chartWidth)
-            .attr("height", chartHeight)
-            .attr("class", "chart");
-        
-        // //create a scale to size bars proportionally to frame
-        // var yScale = d3.scaleLinear()
-        // .range([0, chartHeight])
-        // .domain([0, 120]);  //y-axis output range
-        //set bars for each province
-        var bars = chart.selectAll(".bar")
-            .data(csvData)
-            .enter()
-            .append("rect")
-            .sort(function(a, b){ //
-                return b[expressed]-a[expressed] //2st - 1st orders the bars from greatest
-            })
-            .attr("class", function(d){
-                return "bar " + d.ADM0_A3;
-            })
-            .attr("width", chartInnerWidth / csvData.length - 1)
-            
-            // .attr("x", function(d, i){
-            //     return i * (chartWidth / csvData.length);
-            // })
-            // .attr("height", function(d){
-            //     return yScale(parseFloat(d[expressed]));
-            // })
-            // .attr("y", function(d){
-            //     return chartHeight - yScale(parseFloat(d[expressed]));
-            // })
-            // .style("fill", function(d){
-            //     return colorScale(d[expressed]);
-            // })
-        
-        //Contextualize: annotate bars with attribute value text
-        var numbers = chart.selectAll(".numbers")
-            .data(csvData)
-            .enter()
-            .append("text")
-            .sort(function(a, b){
-                return b[expressed]-a[expressed]
-            })
-            .attr("class", function(d){
-                return "numbers " + d.ADM0_A3;
-            })
-            .attr("text-anchor", "middle")
-            .attr("x", function(d, i){
-                var fraction = chartWidth / csvData.length ;
-                return i * fraction + 20;
-            })
-            .attr("y", function(d){
-                return yScale(parseFloat(d[expressed]));
-            })
-            .text(function(d){
-                return d[expressed];
-            });
-
-        // Create a text element for the chart title
-        var chartTitle = chart.append("text")
-            .attr("x", 10)
-            .attr("y", 20)
-            .attr("class", "chartTitle")
-            .text("Trade for '" + expressed + "' purpose:");
-        //set bar positions, heights, and colors
-        updateChart(bars, csvData.length, colorScale); 
-    };//end of setChart()
-
-    //dropdown change listener handler
+    //Dropdown change listener handler
     function changeAttribute(attribute, csvData){
         //step1. change the expressed attribute
         expressed = attribute;
@@ -252,6 +376,11 @@
 
         //step3. recolor enumeration units
         var attrs = d3.selectAll(".attr")
+            // .on("mouseover", highlight)
+            // .on("mouseout", dehighlight)
+            // .on("mousemove", moveLabel)
+            .transition()
+            .duration(500) //0.5 second
             .style("fill",function(d){
                 var value = d.properties[expressed];
                 if(value) {
@@ -259,9 +388,8 @@
                 } else {
                     return "rgb(172, 172, 172)";
                 }}
-            )
-            .style("stroke","rgb(124, 124, 124)");
-    
+            );
+
         //step4. Re-sort, resize and recolor bars
         var bars = d3.selectAll(".bar")
             //Re-sort bars
@@ -269,14 +397,43 @@
             //which should not be repeated when the attribute is changed
             .sort(function(a, b){  
                 return b[expressed] - a[expressed];// greatest>>>least
-            }); 
-            console.log(bars)
-        updateChart(bars, csvData.length, colorScale);
+            })
+            .transition()
+            .delay(function(d, i){
+                return i * 50
+            })
+            .duration(500); //0.5 second
+
+        var numbers = d3.selectAll(".numbers")
+            .sort(function(a, b){  
+                return b[expressed] - a[expressed];// greatest>>>least
+            })
+            .transition()
+            .duration(500)
+            .delay(function(d, i){
+                return i * 50
+            });
+        var names = d3.selectAll(".names")
+            .sort(function(a, b){  
+                return b[expressed] - a[expressed];// greatest>>>least
+            })
+            .transition()
+            .duration(500)
+            .delay(function(d, i){
+                return i * 50
+            });
+        updateChart(bars, csvData.length, colorScale,numbers,names);
     };//end of changeAttribute()
     
     //function to position, size, and color bars in chart
-    function updateChart(bars, n, colorScale){ //called from within both setChart() and changeAttribute()
-        //position bars
+    function updateChart(bars,n, colorScale,numbers,names){ //called from within both setChart() and changeAttribute()
+        //Update title
+        var chartTitle = d3.select(".chartTitle")
+            .text(expressed);
+        var chartTitle_P = d3.select(".chartTitle_P")
+            .text("PURPOSE:");
+
+        //Update bars
         bars.attr("x", function(d, i){
                 return i * (chartInnerWidth / n) + leftPadding;
             })
@@ -295,22 +452,48 @@
                 } else {
                     return "#ccc";
                 }
-        });
-        var chartTitle = d3.select(".chartTitle")
-            .text("Trade for '" + expressed + "' purpose:");
-    }; 
-    
+            })
+            // .on("mouseover", highlight)
+            // .on("mouseout", dehighlight)
+            // .on("mousemove", moveLabel);
 
+        //Update numbers and country labels
+        numbers.attr("class", function(d){
+                return "numbers " + d.ADM0_A3;
+                })
+                .attr("text-anchor", "middle")
+                .attr("x", function(d, i){
+                    var fraction = chartWidth / csvData.length ;
+                    return i * fraction + 17;
+                })
+                .attr("y", function(d){
+                    return yScale(parseFloat(d[expressed]));
+                })
+                .text(function(d){
+                    return d[expressed];
+                });
+        names.attr("class", function(d){
+            return "names " + d.ADM0_A3;
+            })
+            .attr("x", function(d, i){
+                var f = chartWidth / csvData.length ;
+                return i * f + 17;
+            })
+            .attr("y", function(d){
+                return yScale(parseFloat(d[expressed]))-13;
+            })
+            .text(function(d){
+                return d['ADM0_A3'];
+            });
+        
+    }; 
 
     //function to create color scale generator
     function makeColorScale(data){
-        var colorClasses = [ //https://colorbrewer2.org/
-            "#feebe2",
-            "#fbb4b9",
-            "#f768a1",
-            "#c51b8a",
-            "#7a0177"
-        ];
+        var colorClasses =  //https://colorbrewer2.org/
+        ['#feebe2','#fbb4b9','#f768a1','#c51b8a','#7a0177']
+        // ['#f6eff7','#bdc9e1','#67a9cf','#1c9099','#016c59']
+        ;
 
         //create color scale generator
         var colorScale = d3.scaleQuantile()
@@ -337,4 +520,5 @@
 
         return colorScale;
     };
+    
 })(); //last line of main.js

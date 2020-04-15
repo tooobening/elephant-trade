@@ -60,8 +60,8 @@ window.onload = function(){
     var y = d3.scaleLinear()
         .range([450, 50]) //Reference 'rect' size
         .domain([0, 700000]);
-   //color scale generator 
-   var color = d3.scaleLinear()
+    //color scale generator 
+    var color = d3.scaleLinear()
    .range([
        "#3921A9",
        "#0E082A"//https://htmlcolorcodes.com/color-picker/
